@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BG3 · 일리시드/이벤트/최종 시트 (5·6·7)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0f1115; --card:#171a21; --text:#e7e9ee; --muted:#9aa4b2; --accent:#9b87f5; --cyan:#7cd4fd; --line:#272b36; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Nanum Gothic",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{padding:16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg, rgba(15,17,21,.95), rgba(15,17,21,.85));backdrop-filter:blur(8px);z-index:10}
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+    h1{font-size:22px;margin:0} .sub{color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .card{grid-column:span 12;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+    @media(min-width:900px){.span6{grid-column:span 6}.span4{grid-column:span 4}.span8{grid-column:span 8}.span3{grid-column:span 3}.span9{grid-column:span 9}}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#121621;cursor:pointer}
+    .tab.on{outline:2px solid var(--accent)}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input,select,button,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0d1016;color:var(--text);font-size:14px}
+    input:focus,select:focus,button:focus,textarea:focus{outline:2px solid var(--accent)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border:1px solid var(--line);padding:8px;text-align:left}
+    th{background:#0d1016}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .footerbar{position:fixed;bottom:0;left:0;right:0;border-top:1px solid var(--line);background:#0d1016cc;backdrop-filter:blur(8px);padding:8px;display:flex;justify-content:center;z-index:20}
+    .footerbar .row > *{margin:0}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#121621;font-size:12px}
+    .muted{color:var(--muted)} .tiny{font-size:11px}
+    body[data-mode="mobile"] .grid{grid-template-columns:1fr}
+    body[data-mode="mobile"] .span6, body[data-mode="mobile"] .span4, body[data-mode="mobile"] .span8, body[data-mode="mobile"] .span3, body[data-mode="mobile"] .span9{grid-column:span 12}
+    @media print { .footerbar{display:none} .card{background:white;border-color:#ddd} body{color:black;background:white} th{background:#f6f6f6} }
+  </style>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>BG3 · 일리시드/이벤트/최종 시트 <span class="muted">(섹션 5·6·7)</span></h1>
+      <div class="sub">모바일/PC 전환 · 검색/필터 · 최종 빌드 시트 JSON 내보내기</div>
+    </div>
+  </header>
+  <div id="app" class="container"></div>
+
+  <div class="footerbar">
+    <div class="row" role="group" aria-label="레이아웃 모드">
+      <span class="chip">레이아웃:
+        <select id="layoutMode" style="width:auto;margin-left:6px">
+          <option value="auto">자동</option>
+          <option value="desktop">PC</option>
+          <option value="mobile">모바일</option>
+        </select>
+      </span>
+      <span class="chip tiny muted">* 선택값은 기기에 저장됩니다.</span>
+    </div>
+  </div>
+
+  <script type="text/babel">
+    // ===== 데이터 (5·6·7) =====
+    const ILLITHID = [
+      { tier:'일반', name_ko:'매혹', name_en:'Charm', type:'대화', effect:'대화 시 설득/협박 강화' },
+      { tier:'일반', name_ko:'정신 폭발', name_en:'Illithid Blast', type:'전투', effect:'광역 정신 피해' },
+      { tier:'일반', name_ko:'약자 도태', name_en:'Cull the Weak', type:'전투', effect:'HP 25% 이하 적 즉사' },
+      { tier:'일반', name_ko:'정신 역류', name_en:'Psionic Backlash', type:'전투', effect:'적 주문 시 피해 반사' },
+      { tier:'강화', name_ko:'비행', name_en:'Fly', type:'이동', effect:'비행, 낙하 피해 무효' },
+      { tier:'강화', name_ko:'정신 지배', name_en:'Psionic Dominance', type:'제어', effect:'단일 대상 지배' },
+      { tier:'강화', name_ko:'자유 시전', name_en:'Freecast', type:'보조', effect:'주문 1회 슬롯 소모 없음' },
+      { tier:'절대', name_ko:'정신 감응', name_en:'Mindsight', type:'탐지', effect:'지도 내 모든 적 감지', note:'엔딩 영향' },
+      { tier:'절대', name_ko:'절대 지배', name_en:'Absolute Control', type:'제어', effect:'대규모 정신 지배', note:'엔딩 영향' },
+    ];
+
+    const EVENTS = [
+      { kind:'클래스', cond:'팔라딘 맹세 위반', title:'Oathbreaker 전용 루트', impact:'전용 NPC/스킬' },
+      { kind:'클래스', cond:'워락', title:'후원자 개입 이벤트', impact:'대화/퀘스트 변화' },
+      { kind:'종족', cond:'드로우', title:'언더다크 NPC 대사 추가', impact:'탐험/스토리' },
+      { kind:'종족', cond:'티플링', title:'지옥 혈통 이벤트', impact:'대화/선택지' },
+      { kind:'메인스토리', cond:'일리시드 파워 사용', title:'동료 호감도 변화', impact:'동료 이탈 가능' },
+      { kind:'메인스토리', cond:'최종 선택', title:'엔딩 분기', impact:'다중 엔딩' },
+    ];
+
+    const DEFAULT_SHEET = {
+      name: '새 빌드',
+      class: 'Paladin', subclass:'Oath of Vengeance', level:12,
+      abilities:{STR:16,DEX:10,CON:16,INT:8,WIS:10,CHA:16},
+      feats:['Great Weapon Master','Tough'],
+      spells:['Bless','Healing Word','Shield of Faith','Haste'],
+      gear:{weapon:'그레이트소드', armor:'플레이트', shield:'방패', accessories:'아뮬렛/링'},
+      illithid:[], events:[],
+      role:'딜탱(단일 보스 컷)',
+      notes:''
+    };
+
+    // ===== 레이아웃 모드 =====
+    function useLayoutMode(){
+      const [mode, setMode] = React.useState(()=> localStorage.getItem('layoutMode') || 'auto');
+      React.useEffect(()=>{
+        const m = mode==='auto' ? (window.innerWidth<900? 'mobile':'desktop') : mode;
+        document.body.setAttribute('data-mode', m);
+        localStorage.setItem('layoutMode', mode);
+        const select = document.getElementById('layoutMode'); if(select) select.value = mode;
+      },[mode]);
+      React.useEffect(()=>{
+        const onChange = (e)=> setMode(e.target.value);
+        const select = document.getElementById('layoutMode'); select?.addEventListener('change', onChange);
+        return ()=> select?.removeEventListener('change', onChange);
+      },[]);
+      return [mode, setMode];
+    }
+
+    // ===== 테이블 유틸 =====
+    function TextFilter({value,onChange,placeholder}){
+      return <input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder||'검색'} />;
+    }
+
+    function IllithidTable(){
+      const [q, setQ] = React.useState('');
+      const [tier, setTier] = React.useState('');
+      const data = ILLITHID.filter(x=> {
+        const hit = (x.name_ko+x.name_en+x.type+x.effect+(x.note||'')).toLowerCase().includes(q.toLowerCase());
+        const passTier = tier? x.tier===tier : true;
+        return hit && passTier;
+      });
+      return (
+        <div className="card">
+          <div className="row" style={{marginBottom:8}}>
+            <label style={{margin:0}}>검색</label>
+            <TextFilter value={q} onChange={setQ} placeholder="이름/효과/유형 검색" />
+            <label style={{margin:0}}>단계</label>
+            <select value={tier} onChange={e=>setTier(e.target.value)} style={{maxWidth:160}}>
+              <option value="">전체</option>
+              <option>일반</option>
+              <option>강화</option>
+              <option>절대</option>
+            </select>
+          </div>
+          <table>
+            <thead><tr><th>단계</th><th>이름</th><th>유형</th><th>효과</th><th>비고</th></tr></thead>
+            <tbody>
+              {data.map((x,i)=>(
+                <tr key={i}>
+                  <td>{x.tier}</td>
+                  <td>{x.name_ko} <span className="muted tiny">({x.name_en})</span></td>
+                  <td>{x.type}</td>
+                  <td>{x.effect}</td>
+                  <td>{x.note||'—'}</td>
+                </tr>
+              ))}
+              {!data.length && <tr><td colSpan="5" className="muted">검색 결과가 없습니다.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function EventsTable(){
+      const [q, setQ] = React.useState('');
+      const [kind, setKind] = React.useState('');
+      const data = EVENTS.filter(x=> {
+        const hit = (x.kind+x.cond+x.title+x.impact).toLowerCase().includes(q.toLowerCase());
+        const passKind = kind? x.kind===kind : true;
+        return hit && passKind;
+      });
+      return (
+        <div className="card">
+          <div className="row" style={{marginBottom:8}}>
+            <label style={{margin:0}}>검색</label>
+            <TextFilter value={q} onChange={setQ} placeholder="조건/이벤트/영향 검색" />
+            <label style={{margin:0}}>분류</label>
+            <select value={kind} onChange={e=>setKind(e.target.value)} style={{maxWidth:160}}>
+              <option value="">전체</option>
+              <option>클래스</option>
+              <option>종족</option>
+              <option>메인스토리</option>
+            </select>
+          </div>
+          <table>
+            <thead><tr><th>분류</th><th>조건</th><th>이벤트</th><th>영향</th></tr></thead>
+            <tbody>
+              {data.map((x,i)=>(
+                <tr key={i}>
+                  <td>{x.kind}</td>
+                  <td>{x.cond}</td>
+                  <td>{x.title}</td>
+                  <td>{x.impact}</td>
+                </tr>
+              ))}
+              {!data.length && <tr><td colSpan="4" className="muted">검색 결과가 없습니다.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function FinalSheet(){
+      const [s, setS] = React.useState(DEFAULT_SHEET);
+      const Abils = ['STR','DEX','CON','INT','WIS','CHA'];
+      function update(path, value){
+        setS(prev=>{
+          const next = JSON.parse(JSON.stringify(prev));
+          const keys = path.split('.');
+          let cur = next;
+          for(let i=0;i<keys.length-1;i++){ cur = cur[keys[i]]; }
+          cur[keys[keys.length-1]] = value;
+          return next;
+        });
+      }
+      function exportJSON(){
+        const blob = new Blob([JSON.stringify(s,null,2)], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = (s.name||'build') + '_sheet.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      return (
+        <div className="card">
+          <div className="grid">
+            <div className="span6">
+              <label>빌드 이름</label>
+              <input value={s.name} onChange={e=>update('name', e.target.value)} />
+            </div>
+            <div className="span3">
+              <label>클래스</label>
+              <input value={s.class} onChange={e=>update('class', e.target.value)} />
+            </div>
+            <div className="span3">
+              <label>서브클래스</label>
+              <input value={s.subclass} onChange={e=>update('subclass', e.target.value)} />
+            </div>
+            <div className="span3">
+              <label>레벨</label>
+              <input type="number" min="1" max="12" value={s.level} onChange={e=>update('level', Number(e.target.value))} />
+            </div>
+            <div className="span9">
+              <label>능력치</label>
+              <div className="row">
+                {Abils.map(k=>(
+                  <span key={k} className="chip">
+                    {k}: <input type="number" min="1" max="30" style={{width:70}} value={s.abilities[k]} onChange={e=>update('abilities.'+k, Number(e.target.value))}/>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="span6">
+              <label>특성(Feats) – 콤마 구분</label>
+              <input value={s.feats.join(', ')} onChange={e=>update('feats', e.target.value.split(',').map(x=>x.trim()).filter(Boolean))} />
+            </div>
+            <div className="span6">
+              <label>주문(Spells) – 콤마 구분</label>
+              <input value={s.spells.join(', ')} onChange={e=>update('spells', e.target.value.split(',').map(x=>x.trim()).filter(Boolean))} />
+            </div>
+            <div className="span4">
+              <label>무기</label>
+              <input value={s.gear.weapon} onChange={e=>update('gear.weapon', e.target.value)} />
+            </div>
+            <div className="span4">
+              <label>방어구</label>
+              <input value={s.gear.armor} onChange={e=>update('gear.armor', e.target.value)} />
+            </div>
+            <div className="span4">
+              <label>방패/악세</label>
+              <input value={s.gear.shield} onChange={e=>update('gear.shield', e.target.value)} />
+            </div>
+            <div className="span6">
+              <label>일리시드 파워 선택</label>
+              <select multiple value={s.illithid} onChange={e=>{
+                const opts = Array.from(e.target.selectedOptions).map(o=>o.value);
+                update('illithid', opts);
+              }} style={{height:120}}>
+                {ILLITHID.map(x=> <option key={x.name_en} value={x.name_en}>{x.name_ko} ({x.tier})</option>)}
+              </select>
+            </div>
+            <div className="span6">
+              <label>특별 이벤트 선택</label>
+              <select multiple value={s.events} onChange={e=>{
+                const opts = Array.from(e.target.selectedOptions).map(o=>o.value);
+                update('events', opts);
+              }} style={{height:120}}>
+                {EVENTS.map((x,i)=> <option key={i} value={x.title}>{x.title} ({x.kind})</option>)}
+              </select>
+            </div>
+            <div className="span12">
+              <label>파티 역할/메모</label>
+              <textarea rows="3" value={s.notes} onChange={e=>update('notes', e.target.value)} placeholder="역할, 콤보, 주의점 등" />
+            </div>
+            <div className="span12">
+              <button onClick={exportJSON}>현재 시트 JSON로 저장</button>
+            </div>
+            <div className="span12">
+              <label>미리보기</label>
+              <pre style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(s,null,2)}</pre>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App(){
+      const [mode] = useLayoutMode();
+      const [tab, setTab] = React.useState('ill');
+      return (
+        <div className="grid">
+          <section className="card span12">
+            <div className="tabs">
+              {[{k:'ill',n:'⑤ 일리시드 능력'},{k:'ev',n:'⑥ 특별 이벤트'},{k:'final',n:'⑦ 최종 캐릭터 시트'}].map(t=> (
+                <button key={t.k} className={'tab'+(tab===t.k?' on':'')} onClick={()=>setTab(t.k)}>{t.n}</button>
+              ))}
+            </div>
+            {tab==='ill' && <IllithidTable/>}
+            {tab==='ev' && <EventsTable/>}
+            {tab==='final' && <FinalSheet/>}
+          </section>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('app'));
+    root.render(<App/>);
+  </script>
+</body>
+</html>
